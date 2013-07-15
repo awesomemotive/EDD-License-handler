@@ -5,7 +5,7 @@ License / updater handler for Easy Digital Downloads extensions.
 
 This class should be included with all premium EDD extensions sold through EasyDigitalDownloads.com in order to include licensing and updates.
 
-_Make sure you place both the `EDD_Licens_Handler.php` class and the `EDD_SL_Plugin_Updater.php` class in the same location._
+*Make sure you place both the `EDD_Licens_Handler.php` class and the `EDD_SL_Plugin_Updater.php` class in the same location.*
 
 ```php
 // Load the EDD license handler only if not already loaded. Must be placed in the main plugin file
