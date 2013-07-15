@@ -23,9 +23,10 @@ Full Example:
 if( ! class_exists( 'EDD_License' ) )
 	include( dirname( __FILE__ ) . '/includes/EDD_License_Handler.php' );
 
- $license = new EDD_License( __FILE__, 'PDF Stamper', '1.0.5', 'Daniel J Griffiths' );
- ```
+$license = new EDD_License( __FILE__, 'PDF Stamper', '1.0.5', 'Daniel J Griffiths' );
+```
 
- Requirements
- ============
- This class can only be used with EDD v1.7 and later.
+Requirements
+============
+
+This class can only be used with EDD v1.7 and later.
