@@ -25,3 +25,7 @@ if( ! class_exists( 'EDD_License' ) )
 
  $license = new EDD_License( __FILE__, 'PDF Stamper', '1.0.5', 'Daniel J Griffiths' );
  ```
+
+ Requirements
+ ============
+ This class can only be used with EDD v1.7 and later.
