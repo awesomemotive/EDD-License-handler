@@ -1,4 +1,4 @@
-EDD-License-handler
+EDD License Handler
 ===================
 
 License / updater handler for Easy Digital Downloads extensions.
