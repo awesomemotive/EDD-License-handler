@@ -30,7 +30,6 @@ if ( !class_exists( 'EDD_License' ) ) {
 		 * @param string  $_item_name
 		 * @param string  $_version
 		 * @param string  $_author
-		 * @return  void
 		 */
 		function __construct( $_file, $_item_name, $_version, $_author ) {
 			global $edd_options;
@@ -128,8 +127,6 @@ if ( !class_exists( 'EDD_License' ) ) {
 		 * @return  void
 		 */
 		public function activate_license() {
-			global $edd_options;
-
 			if ( !isset( $_POST['edd_settings_licenses'] ) ) return;
 			if ( !isset( $_POST['edd_settings_licenses'][$this->item_shortname . '_license_key'] ) ) return;
 
@@ -148,7 +145,7 @@ if ( !class_exists( 'EDD_License' ) ) {
 			$response = wp_remote_get( add_query_arg( $api_params, 'https://easydigitaldownloads.com' ), array( 'timeout' => 15, 'body' => $api_params, 'sslverify' => false ) );
 
 			// Make sure there are no errors
-			if ( is_wp_error( $response ) ) return false;
+			if ( is_wp_error( $response ) ) return;
 
 			// Decode license data
 			$license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -164,8 +161,6 @@ if ( !class_exists( 'EDD_License' ) ) {
 		 * @return  void
 		 */
 		public function deactivate_license() {
-			global $edd_options;
-
 			if ( !isset( $_POST['edd_settings_licenses'] ) ) return;
 			if ( !isset( $_POST['edd_settings_licenses'][$this->item_shortname . '_license_key'] ) ) return;
 
@@ -185,7 +180,7 @@ if ( !class_exists( 'EDD_License' ) ) {
 				$response = wp_remote_get( add_query_arg( $api_params, 'https://easydigitaldownloads.com' ), array( 'timeout' => 15, 'sslverify' => false ) );
 
 				// Make sure there are no errors
-				if ( is_wp_error( $response ) ) return false;
+				if ( is_wp_error( $response ) ) return;
 
 				// Decode the license data
 				$license_data = json_decode( wp_remote_retrieve_body( $response ) );
@@ -211,7 +206,7 @@ if ( !function_exists( 'edd_license_key_callback' ) ) {
 
 		if ( isset( $edd_options[ $args['id'] ] ) ) { $value = $edd_options[ $args['id'] ]; } else { $value = isset( $args['std'] ) ? $args['std'] : ''; }
 		$size = isset( $args['size'] ) && !is_null( $args['size'] ) ? $args['size'] : 'regular';
-		$html = '<input type="text" class="' . $args['size'] . '-text" id="edd_settings_' . $args['section'] . '[' . $args['id'] . ']" name="edd_settings_' . $args['section'] . '[' . $args['id'] . ']" value="' . esc_attr( $value ) . '"/>';
+		$html = '<input type="text" class="' . $size . '-text" id="edd_settings_' . $args['section'] . '[' . $args['id'] . ']" name="edd_settings_' . $args['section'] . '[' . $args['id'] . ']" value="' . esc_attr( $value ) . '"/>';
 
 		if ( 'valid' == get_option( $args['options']['is_valid_license_option'] ) ) {
 			$html .= wp_nonce_field( $args['id'] . '_nonce', $args['id'] . '_nonce', false );
