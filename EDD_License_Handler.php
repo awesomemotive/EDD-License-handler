@@ -55,7 +55,7 @@ class EDD_License {
 
 		// Setup hooks
 		$this->includes();
-		$this->hook();
+		$this->hooks();
 		$this->auto_updater();
 	}
 
@@ -75,7 +75,7 @@ class EDD_License {
 	 * @access  private
 	 * @return  void
 	 */
-	private function hook() {
+	private function hooks() {
 		// Register settings
 		add_filter( 'edd_settings_licenses', array( $this, 'settings' ), 1 );
 
