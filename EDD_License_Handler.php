@@ -49,7 +49,7 @@ class EDD_License {
 		 * handler will automatically pick these up and use those in lieu of the
 		 * user having to reactive their license.
 		 */
-		if ( ! is_null( $_optname && isset( $edd_options[ $_optname ] ) && empty( $this->license ) ) ) {
+		if ( ! is_null( $_optname ) && ! empty( $_optname ) && isset( $edd_options[ $_optname ] ) && empty( $this->license ) ) ) {
 			$this->license = trim( $edd_options[ $_optname ] );
 		}
 
