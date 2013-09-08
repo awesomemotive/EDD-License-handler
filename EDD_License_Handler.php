@@ -23,8 +23,7 @@ class EDD_License {
 	private $item_shortname;
 	private $version;
 	private $author;
-
-	protected $api_url = 'https://easydigitaldownloads.com';
+	private $api_url = 'https://easydigitaldownloads.com';
 
 	/**
 	 * Class constructor
