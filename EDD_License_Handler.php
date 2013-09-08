@@ -24,6 +24,8 @@ class EDD_License {
 	private $version;
 	private $author;
 
+	protected $api_url = 'https://easydigitaldownloads.com';
+
 	/**
 	 * Class constructor
 	 *
@@ -32,8 +34,10 @@ class EDD_License {
 	 * @param string  $_item_name
 	 * @param string  $_version
 	 * @param string  $_author
+	 * @param string  $_optname
+	 * @param string  $_api_url
 	 */
-	function __construct( $_file, $_item_name, $_version, $_author, $_optname = null ) {
+	function __construct( $_file, $_item_name, $_version, $_author, $_optname = null, $_api_url = null ) {
 		global $edd_options;
 
 		$this->file           = $_file;
@@ -42,6 +46,7 @@ class EDD_License {
 		$this->version        = $_version;
 		$this->license        = isset( $edd_options[ $this->item_shortname . '_license_key' ] ) ? trim( $edd_options[ $this->item_shortname . '_license_key' ] ) : '';
 		$this->author         = $_author;
+		$this->api_url        = is_null( $_api_url ) ? $this->api_url : $_api_url;
 
 		/**
 		 * Allows for backwards compatibility with old license options,
@@ -96,7 +101,7 @@ class EDD_License {
 	private function auto_updater() {
 		// Setup the updater
 		$edd_updater = new EDD_SL_Plugin_Updater(
-			'https://easydigitaldownloads.com',
+			$this->api_url,
 			$this->file,
 			array(
 				'version'   => $this->version,
@@ -158,7 +163,7 @@ class EDD_License {
 
 		// Call the API
 		$response = wp_remote_get(
-			add_query_arg( $api_params, 'https://easydigitaldownloads.com' ),
+			add_query_arg( $api_params, $this->api_url ),
 			array(
 				'timeout'   => 15,
 				'body'      => $api_params,
@@ -205,7 +210,7 @@ class EDD_License {
 
 			// Call the API
 			$response = wp_remote_get(
-				add_query_arg( $api_params, 'https://easydigitaldownloads.com' ),
+				add_query_arg( $api_params, $this->api_url ),
 				array(
 					'timeout'   => 15,
 					'sslverify' => false
