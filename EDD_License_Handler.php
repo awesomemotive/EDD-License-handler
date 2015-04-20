@@ -161,7 +161,7 @@ class EDD_License {
 
 		// Call the API
 		$response = wp_remote_get(
-			add_query_arg( $api_params, $this->api_url ),
+			esc_url_raw( add_query_arg( $api_params, $this->api_url ) ),
 			array(
 				'timeout'   => 15,
 				'body'      => $api_params,
@@ -205,7 +205,7 @@ class EDD_License {
 
 			// Call the API
 			$response = wp_remote_get(
-				add_query_arg( $api_params, $this->api_url ),
+				esc_url_raw( add_query_arg( $api_params, $this->api_url ) ),
 				array(
 					'timeout'   => 15,
 					'sslverify' => false
