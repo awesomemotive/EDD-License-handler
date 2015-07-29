@@ -32,6 +32,7 @@ class EDD_SL_Plugin_Updater {
 		$this->name     = plugin_basename( $_plugin_file );
 		$this->slug     = basename( $_plugin_file, '.php' );
 		$this->version  = $_api_data['version'];
+		$this->plugin = plugin_basename( $_plugin_file );
 
 		// Set up hooks.
 		$this->init();
@@ -81,6 +82,7 @@ class EDD_SL_Plugin_Updater {
 		if ( empty( $_transient_data->response ) || empty( $_transient_data->response[ $this->name ] ) ) {
 
 			$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug ) );
+			$version_info->plugin = $this->plugin;
 
 			if ( false !== $version_info && is_object( $version_info ) && isset( $version_info->new_version ) ) {
 
