@@ -1,16 +1,13 @@
 <?php
 
-// uncomment this line for testing
-//set_site_transient( 'update_plugins', null );
-
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Allows plugins to use their own update API.
  *
- * @author Pippin Williamson
- * @version 1.6.7
+ * @author Easy Digital Downloads
+ * @version 1.6.8
  */
 class EDD_SL_Plugin_Updater {
 
@@ -101,7 +98,7 @@ class EDD_SL_Plugin_Updater {
 		$version_info = $this->get_cached_version_info();
 
 		if ( false === $version_info ) {
-			$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug ) );
+			$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug, 'beta' => ! empty( $this->api_data['beta'] ) ) );
 
 			$this->set_version_info_cache( $version_info );
 
@@ -159,7 +156,7 @@ class EDD_SL_Plugin_Updater {
 			$version_info = $this->get_cached_version_info();
 
 			if ( false === $version_info ) {
-				$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug ) );
+				$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug, 'beta' => ! empty( $this->api_data['beta'] ) ) );
 
 				$this->set_version_info_cache( $version_info );
 			}
@@ -330,7 +327,7 @@ class EDD_SL_Plugin_Updater {
 			'slug'       => $data['slug'],
 			'author'     => $data['author'],
 			'url'        => home_url(),
-			'beta'       => isset( $data['beta'] ) ? $data['beta'] : false,
+			'beta'       => ! empty( $data['beta'] ),
 		);
 
 		$request = wp_remote_post( $this->api_url, array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
@@ -347,8 +344,6 @@ class EDD_SL_Plugin_Updater {
 
 		if ( $request && isset( $request->banners ) ) {
 			$request->banners = maybe_unserialize( $request->banners );
-		} else {
-			$request = false;
 		}
 
 		return $request;
@@ -386,7 +381,8 @@ class EDD_SL_Plugin_Updater {
 				'item_id'    => isset( $data['item_id'] ) ? $data['item_id'] : false,
 				'slug'       => $_REQUEST['slug'],
 				'author'     => $data['author'],
-				'url'        => home_url()
+				'url'        => home_url(),
+				'beta'       => ! empty( $data['beta'] )
 			);
 
 			$request = wp_remote_post( $this->api_url, array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
