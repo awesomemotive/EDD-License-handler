@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * Allows plugins to use their own update API.
  *
  * @author Easy Digital Downloads
- * @version 1.6.8
+ * @version 1.6.9
  */
 class EDD_SL_Plugin_Updater {
 
@@ -324,6 +324,7 @@ class EDD_SL_Plugin_Updater {
 			'license'    => ! empty( $data['license'] ) ? $data['license'] : '',
 			'item_name'  => isset( $data['item_name'] ) ? $data['item_name'] : false,
 			'item_id'    => isset( $data['item_id'] ) ? $data['item_id'] : false,
+			'version'    => isset( $data['version'] ) ? $data['version'] : false,
 			'slug'       => $data['slug'],
 			'author'     => $data['author'],
 			'url'        => home_url(),
@@ -344,6 +345,12 @@ class EDD_SL_Plugin_Updater {
 
 		if ( $request && isset( $request->banners ) ) {
 			$request->banners = maybe_unserialize( $request->banners );
+		}
+
+		if( ! empty( $request ) ) {
+			foreach( $request->sections as $key => $section ) {
+				$request->$key = (array) $section;
+			}
 		}
 
 		return $request;
@@ -391,10 +398,17 @@ class EDD_SL_Plugin_Updater {
 				$version_info = json_decode( wp_remote_retrieve_body( $request ) );
 			}
 
+
 			if ( ! empty( $version_info ) && isset( $version_info->sections ) ) {
 				$version_info->sections = maybe_unserialize( $version_info->sections );
 			} else {
 				$version_info = false;
+			}
+
+			if( ! empty( $version_info ) ) {
+				foreach( $version_info->sections as $key => $section ) {
+					$version_info->$key = (array) $section;
+				}
 			}
 
 			$this->set_version_info_cache( $version_info, $cache_key );
