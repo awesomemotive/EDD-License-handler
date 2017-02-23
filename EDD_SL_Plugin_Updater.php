@@ -62,7 +62,6 @@ class EDD_SL_Plugin_Updater {
 		add_filter( 'plugins_api', array( $this, 'plugins_api_filter' ), 10, 3 );
 		remove_action( 'after_plugin_row_' . $this->name, 'wp_plugin_update_row', 10 );
 		add_action( 'after_plugin_row_' . $this->name, array( $this, 'show_update_notification' ), 10, 2 );
-		add_action( 'admin_init', array( $this, 'show_changelog' ) );
 
 	}
 
@@ -196,13 +195,13 @@ class EDD_SL_Plugin_Updater {
 			echo '<div class="update-message notice inline notice-warning notice-alt">';
 			echo '<p>';
 
-			$changelog_link = self_admin_url( 'index.php?edd_sl_action=view_plugin_changelog&plugin=' . $this->name . '&slug=' . $this->slug . '&TB_iframe=true&width=772&height=911' );
+			$changelog_link = self_admin_url( 'network/plugin-install.php?tab=plugin-information&plugin=' . $this->slug . '&section=changelog&TB_iframe=true&width=772&height=911' );
 
 			if ( empty( $version_info->download_link ) ) {
 				printf(
 					__( 'There is a new version of %1$s available. %2$sView version %3$s details%4$s.', 'easy-digital-downloads' ),
 					esc_html( $version_info->name ),
-					'<a target="_blank" class="thickbox" href="' . esc_url( $changelog_link ) . '">',
+					'<a target="_blank" class="thickbox open-plugin-details-modal" href="' . esc_url( $changelog_link ) . '">',
 					esc_html( $version_info->new_version ),
 					'</a>'
 				);
@@ -210,10 +209,10 @@ class EDD_SL_Plugin_Updater {
 				printf(
 					__( 'There is a new version of %1$s available. %2$sView version %3$s details%4$s or %5$supdate now%6$s.', 'easy-digital-downloads' ),
 					esc_html( $version_info->name ),
-					'<a target="_blank" class="thickbox" href="' . esc_url( $changelog_link ) . '">',
+					'<a target="_blank" class="thickbox open-plugin-details-modal" href="' . esc_url( $changelog_link ) . '">',
 					esc_html( $version_info->new_version ),
 					'</a>',
-					'<a href="' . esc_url( wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' ) . $this->name, 'upgrade-plugin_' . $this->name ) ) .'">',
+					'<a href="' . esc_url( wp_nonce_url( self_admin_url( 'network/update.php?action=upgrade-plugin&plugin=' ) . $this->name, 'upgrade-plugin_' . $this->name ) ) .'">',
 					'</a>'
 				);
 			}
@@ -376,73 +375,6 @@ class EDD_SL_Plugin_Updater {
 		}
 
 		return $request;
-	}
-
-	public function show_changelog() {
-
-		global $edd_plugin_data;
-
-		if( empty( $_REQUEST['edd_sl_action'] ) || 'view_plugin_changelog' != $_REQUEST['edd_sl_action'] ) {
-			return;
-		}
-
-		if( empty( $_REQUEST['plugin'] ) ) {
-			return;
-		}
-
-		if( empty( $_REQUEST['slug'] ) ) {
-			return;
-		}
-
-		if( ! current_user_can( 'update_plugins' ) ) {
-			wp_die( __( 'You do not have permission to install plugin updates', 'easy-digital-downloads' ), __( 'Error', 'easy-digital-downloads' ), array( 'response' => 403 ) );
-		}
-
-		$data         = $edd_plugin_data[ $_REQUEST['slug'] ];
-		$beta         = ! empty( $data['beta'] ) ? true : false;
-		$cache_key    = md5( 'edd_plugin_' . sanitize_key( $_REQUEST['plugin'] ) . '_' . $beta . '_version_info' );
-		$version_info = $this->get_cached_version_info( $cache_key );
-
-		if( false === $version_info ) {
-
-			$api_params = array(
-				'edd_action' => 'get_version',
-				'item_name'  => isset( $data['item_name'] ) ? $data['item_name'] : false,
-				'item_id'    => isset( $data['item_id'] ) ? $data['item_id'] : false,
-				'slug'       => $_REQUEST['slug'],
-				'author'     => $data['author'],
-				'url'        => home_url(),
-				'beta'       => ! empty( $data['beta'] )
-			);
-
-			$request = wp_remote_post( $this->api_url, array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
-
-			if ( ! is_wp_error( $request ) ) {
-				$version_info = json_decode( wp_remote_retrieve_body( $request ) );
-			}
-
-
-			if ( ! empty( $version_info ) && isset( $version_info->sections ) ) {
-				$version_info->sections = maybe_unserialize( $version_info->sections );
-			} else {
-				$version_info = false;
-			}
-
-			if( ! empty( $version_info ) ) {
-				foreach( $version_info->sections as $key => $section ) {
-					$version_info->$key = (array) $section;
-				}
-			}
-
-			$this->set_version_info_cache( $version_info, $cache_key );
-
-		}
-
-		if( ! empty( $version_info ) && isset( $version_info->sections['changelog'] ) ) {
-			echo '<div style="background:#fff;padding:10px;">' . $version_info->sections['changelog'] . '</div>';
-		}
-
-		exit;
 	}
 
 	public function get_cached_version_info( $cache_key = '' ) {
