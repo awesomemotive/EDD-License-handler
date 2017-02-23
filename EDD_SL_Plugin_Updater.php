@@ -40,7 +40,7 @@ class EDD_SL_Plugin_Updater {
 		$this->version     = $_api_data['version'];
 		$this->wp_override = isset( $_api_data['wp_override'] ) ? (bool) $_api_data['wp_override'] : false;
 		$this->beta        = ! empty( $this->api_data['beta'] ) ? true : false;
-		$this->cache_key   = md5( serialize( $this->slug . $this->api_data['license'] . $this->beta ) );
+		$this->cache_key   = 'edd_plugin_updater_version_info_' . md5( serialize( $this->slug . $this->api_data['license'] . $this->beta ) );
 
 		$edd_plugin_data[ $this->slug ] = $this->api_data;
 
@@ -98,7 +98,7 @@ class EDD_SL_Plugin_Updater {
 		$version_info = $this->get_cached_version_info();
 
 		if ( false === $version_info ) {
-			$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug, 'beta' => $this->beta ) );
+			$version_info = $this->api_request();
 
 			$this->set_version_info_cache( $version_info );
 
@@ -156,7 +156,7 @@ class EDD_SL_Plugin_Updater {
 			$version_info = $this->get_cached_version_info();
 
 			if ( false === $version_info ) {
-				$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug, 'beta' => $this->beta ) );
+				$version_info = $this->api_request();
 
 				$this->set_version_info_cache( $version_info );
 			}
@@ -246,34 +246,22 @@ class EDD_SL_Plugin_Updater {
 
 		}
 
-		$to_send = array(
-			'slug'   => $this->slug,
-			'is_ssl' => is_ssl(),
-			'fields' => array(
-				'banners' => array(),
-				'reviews' => false
-			)
-		);
-
-		$cache_key = 'edd_api_request_' . md5( serialize( $this->slug . $this->api_data['license'] . $this->beta ) );
-
 		// Get the transient where we store the api request for this plugin for 24 hours
-		$edd_api_request_transient = $this->get_cached_version_info( $cache_key );
+		$version_info = $this->get_cached_version_info();
 
 		//If we have no transient-saved value, run the API, set a fresh transient with the API value, and return that value too right now.
-		if ( empty( $edd_api_request_transient ) ) {
+		if ( empty( $version_info ) ) {
 
-			$api_response = $this->api_request( 'plugin_information', $to_send );
+			$api_response = $this->api_request();
 
-			// Expires in 3 hours
-			$this->set_version_info_cache( $api_response, $cache_key );
+			$this->set_version_info_cache( $api_response );
 
 			if ( false !== $api_response ) {
 				$_data = $api_response;
 			}
 
 		} else {
-			$_data = $edd_api_request_transient;
+			$_data = $version_info;
 		}
 
 		// Convert sections into an associative array, since we're getting an object, but Core expects an array.
@@ -315,21 +303,26 @@ class EDD_SL_Plugin_Updater {
 	}
 
 	/**
-	 * Calls the API and, if successfull, returns the object delivered by the API.
+	 * Calls the API and, if successful, returns the object delivered by the API.
 	 *
-	 * @uses get_bloginfo()
 	 * @uses wp_remote_post()
 	 * @uses is_wp_error()
 	 *
 	 * @param string  $_action The requested action.
-	 * @param array   $_data   Parameters for the API action.
 	 * @return false|object
 	 */
-	private function api_request( $_action, $_data ) {
+	private function api_request() {
+		$defaults = array(
+			'slug'   => $this->slug,
+			'beta'   => $this->beta,
+			'is_ssl' => is_ssl(),
+			'fields' => array(
+				'banners' => array(),
+				'reviews' => false,
+			),
+		);
 
-		global $wp_version;
-
-		$data = array_merge( $this->api_data, $_data );
+		$data  = wp_parse_args( $this->api_data, $defaults );
 
 		if ( $data['slug'] != $this->slug ) {
 			return;
@@ -398,8 +391,7 @@ class EDD_SL_Plugin_Updater {
 
 		$data         = $edd_plugin_data[ $_REQUEST['slug'] ];
 		$beta         = ! empty( $data['beta'] ) ? true : false;
-		$cache_key    = md5( 'edd_plugin_' . sanitize_key( $_REQUEST['plugin'] ) . '_' . $beta . '_version_info' );
-		$version_info = $this->get_cached_version_info( $cache_key );
+		$version_info = $this->get_cached_version_info();
 
 		if( false === $version_info ) {
 
@@ -432,7 +424,7 @@ class EDD_SL_Plugin_Updater {
 				}
 			}
 
-			$this->set_version_info_cache( $version_info, $cache_key );
+			$this->set_version_info_cache( $version_info );
 
 		}
 
@@ -443,13 +435,13 @@ class EDD_SL_Plugin_Updater {
 		exit;
 	}
 
-	public function get_cached_version_info( $cache_key = '' ) {
-
-		if( empty( $cache_key ) ) {
-			$cache_key = $this->cache_key;
-		}
-
-		$cache = get_option( $cache_key );
+	/**
+	 * Get cached plugin version information.
+	 *
+	 * @return false|array
+	 */
+	public function get_cached_version_info() {
+		$cache = get_option( $this->cache_key );
 
 		if( empty( $cache['timeout'] ) || current_time( 'timestamp' ) > $cache['timeout'] ) {
 			return false; // Cache is expired
@@ -459,19 +451,19 @@ class EDD_SL_Plugin_Updater {
 
 	}
 
-	public function set_version_info_cache( $value = '', $cache_key = '' ) {
-
-		if( empty( $cache_key ) ) {
-			$cache_key = $this->cache_key;
-		}
-
+	/**
+	 * Set plugin version information cache.
+	 *
+	 * @param string $value
+	 */
+	public function set_version_info_cache( $value = '' ) {
 		$data = array(
+			// Expires in 3 hours
 			'timeout' => strtotime( '+3 hours', current_time( 'timestamp' ) ),
-			'value'   => json_encode( $value )
+			'value'   => wp_json_encode( $value ),
 		);
 
-		update_option( $cache_key, $data );
-
+		update_option( $this->cache_key, $data );
 	}
 
 }
