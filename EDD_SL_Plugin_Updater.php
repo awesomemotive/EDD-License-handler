@@ -334,7 +334,7 @@ class EDD_SL_Plugin_Updater {
 		$data = array_merge( $this->api_data, $_data );
 
 		if ( $data['slug'] != $this->slug ) {
-			return;
+			return false;
 		}
 
 		if( $this->api_url == trailingslashit (home_url() ) ) {
